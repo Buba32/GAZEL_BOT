@@ -15,20 +15,20 @@ log = logging.getLogger(__name__)
 async def notify_new_order(
     bot: Bot, config: Config, order_id: int, user, src: Place, dst: Place, route: Route, price: int
 ) -> None:
-    client = f'<a href="tg://user?id={user["tg_id"]}">{escape(user["first_name"] or "Клиент")}</a>'
+    client = f'<a href="tg://user?id={user["tg_id"]}">{escape(user["first_name"] or "Клієнт")}</a>'
     if user["username"]:
         client += f" (@{escape(user['username'])})"
-    distance = fmt_km(route.distance_km) + (" (оценка по прямой)" if route.estimated else "")
+    distance = fmt_km(route.distance_km) + (" (оцінка за прямою)" if route.estimated else "")
 
     text = (
         f"🆕 <b>Заявка №{order_id}</b>\n\n"
         f"👤 {client}\n"
         f"📞 {escape(user['phone'])}\n\n"
-        f"📍 Откуда: {escape(src.address)}\n"
-        f"🏁 Куда: {escape(dst.address)}\n"
+        f"📍 Звідки: {escape(src.address)}\n"
+        f"🏁 Куди: {escape(dst.address)}\n"
         f"🛣 {distance}\n"
         f"💰 {fmt_price(price)}\n"
-        f'<a href="{map_url(src, dst)}">Маршрут на карте</a>'
+        f'<a href="{map_url(src, dst)}">Маршрут на карті</a>'
     )
 
     chats = [config.admin_chat_id] if config.admin_chat_id else sorted(config.admin_ids)

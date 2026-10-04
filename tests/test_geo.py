@@ -84,3 +84,24 @@ async def test_route_falls_back_to_estimate():
     assert route.estimated
     assert route.duration_min is None
     assert route.distance_km == pytest.approx(haversine_km(KHARKIV, KYIV) * 1.5)
+
+
+async def test_russian_street_falls_back_to_ukrainian_query():
+    # Улицы нет в OSM под русским названием, но есть под украинским
+    def search(url, params):
+        if params["q"] == "Пушкінська 5":
+            return [
+                {"lat": "50.0", "lon": "36.24", "name": "", "address": {"road": "Пушкінська вулиця", "city": "Харків"}}
+            ]
+        return []
+
+    geo = StubGeo({"http://nominatim/search": search})
+    place = await geo.geocode("Пушкинская 5")
+    assert place == Place("Харків, Пушкінська вулиця", 50.0, 36.24)
+    assert [params["q"] for _, params in geo.calls] == ["Пушкинская 5", "Пушкінська 5"]
+
+
+async def test_ukrainian_query_is_sent_once():
+    geo = StubGeo({"http://nominatim/search": []})
+    assert await geo.geocode("Сумська 10") is None
+    assert len(geo.calls) == 1

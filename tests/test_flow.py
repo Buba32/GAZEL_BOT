@@ -141,14 +141,14 @@ async def register(h: Harness, uid: int = CLIENT) -> None:
 async def test_unregistered_user_is_asked_for_phone(h):
     await h.message(CLIENT, text=MENU_ORDER)
     reply = h.session.sent(CLIENT)[-1]
-    assert "поделитесь номером" in reply.text
+    assert "поділіться номером" in reply.text
     assert reply.reply_markup.keyboard[0][0].text == BTN_CONTACT
 
 
 async def test_foreign_contact_is_rejected(h):
     await h.message(CLIENT, contact={"phone_number": "+380000000000", "first_name": "Чужой", "user_id": 777})
     assert await h.db.get_user(CLIENT) is None
-    assert "<b>свой</b>" in h.session.sent(CLIENT)[-1].text
+    assert "<b>свій</b>" in h.session.sent(CLIENT)[-1].text
 
 
 async def test_full_order_flow(h):
@@ -156,27 +156,27 @@ async def test_full_order_flow(h):
     assert (await h.db.get_user(CLIENT))["phone"] == "+380501234567"
 
     await h.message(CLIENT, text=MENU_ORDER)
-    assert "Откуда" in h.session.sent(CLIENT)[-1].text
+    assert "Звідки" in h.session.sent(CLIENT)[-1].text
 
     await h.message(CLIENT, text="абырвалг")
-    assert "Не нашёл" in h.session.sent(CLIENT)[-1].text
+    assert "Не вдалося знайти" in h.session.sent(CLIENT)[-1].text
 
     await h.message(CLIENT, text="Сумская 10")
     texts = [m.text for m in h.session.sent(CLIENT)[-2:]]
     assert "Харків, Сумська вулиця, 10" in texts[0]
-    assert "Куда" in texts[1]
+    assert "Куди" in texts[1]
 
     await h.message(CLIENT, text="Чугуев, Харьковская 5")
     summary = h.session.sent(CLIENT)[-1].text
     assert "24,5 км" in summary
-    assert "≈ 35 мин" in summary
+    assert "≈ 35 хв у дорозі" in summary
     # 600 + 24.5 * 25 = 1212.5 → округление вверх до 10 грн
     assert "1 220 грн" in summary
     assert "https://www.google.com/maps/dir/50.0005,36.2325/49.835,36.688/" in summary
 
     await h.press(CLIENT, OrderCb(action="confirm").pack())
     edit = next(r for r in reversed(h.session.requests) if isinstance(r, EditMessageText))
-    assert "Заявка №1 оформлена" in edit.text
+    assert "Заявку №1 оформлено" in edit.text
 
     order = await h.db.get_order(1)
     assert (order["from_address"], order["to_address"], order["price"]) == (
@@ -196,10 +196,10 @@ async def test_full_order_flow(h):
 
     await h.press(ADMIN, AdminOrderCb(action="accept", order_id=1).pack(), text=admin_msg.text)
     assert (await h.db.get_order(1))["status"] == "accepted"
-    assert "принята" in h.session.sent(CLIENT)[-1].text
+    assert "прийнято" in h.session.sent(CLIENT)[-1].text
 
     await h.message(CLIENT, text=MENU_ORDERS)
-    assert "✅ Принята" in h.session.sent(CLIENT)[-1].text
+    assert "✅ Прийнята" in h.session.sent(CLIENT)[-1].text
 
 
 async def test_same_address_twice_is_rejected(h):
@@ -207,7 +207,7 @@ async def test_same_address_twice_is_rejected(h):
     await h.message(CLIENT, text=MENU_ORDER)
     await h.message(CLIENT, text="Сумская 10")
     await h.message(CLIENT, text="Сумская 10")
-    assert "совпадает" in h.session.sent(CLIENT)[-1].text
+    assert "збігається" in h.session.sent(CLIENT)[-1].text
 
 
 async def test_location_input(h):
@@ -229,14 +229,14 @@ async def test_non_admin_cannot_accept(h):
     await h.press(CLIENT, AdminOrderCb(action="accept", order_id=1).pack())
     assert (await h.db.get_order(1))["status"] == "new"
     answer = next(r for r in reversed(h.session.requests) if isinstance(r, AnswerCallbackQuery))
-    assert answer.text == "Только для администраторов"
+    assert answer.text == "Лише для адміністраторів"
 
 
 async def test_admin_post_to_channel(h):
     await h.message(ADMIN, text="/post Скидка 10% на переезды!")
     post = h.session.sent("@gazel_news")[-1]
     assert post.text == "Скидка 10% на переезды!"
-    assert "Опубликовано" in h.session.sent(ADMIN)[-1].text
+    assert "Опубліковано" in h.session.sent(ADMIN)[-1].text
 
 
 async def test_non_admin_post_is_ignored(h):

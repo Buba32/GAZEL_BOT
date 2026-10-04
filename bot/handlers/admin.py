@@ -17,17 +17,17 @@ log = logging.getLogger(__name__)
 router = Router(name="admin")
 
 POST_USAGE = (
-    "Как опубликовать новость в канал:\n\n"
-    "• <code>/post Текст новости</code> — простой текст (можно HTML-теги &lt;b&gt;, &lt;i&gt;);\n"
-    "• или подготовьте пост (текст, фото, видео) и ответьте на него командой <code>/post</code> — "
-    "он уйдёт в канал как есть, с форматированием."
+    "Як опублікувати новину в канал:\n\n"
+    "• <code>/post Текст новини</code> — простий текст (можна HTML-теги &lt;b&gt;, &lt;i&gt;);\n"
+    "• або підготуйте пост (текст, фото, відео) і дайте відповідь на нього командою <code>/post</code> — "
+    "він піде в канал як є, з форматуванням."
 )
 
 
 @router.message(Command("post"), IsAdmin())
 async def post_to_channel(message: Message, command: CommandObject, bot: Bot, config: Config) -> None:
     if not config.channel_id:
-        await message.answer("Канал не настроен: задайте CHANNEL_ID в .env")
+        await message.answer("Канал не налаштовано: вкажіть CHANNEL_ID у .env")
         return
     try:
         if message.reply_to_message:
@@ -39,10 +39,10 @@ async def post_to_channel(message: Message, command: CommandObject, bot: Bot, co
             return
     except TelegramAPIError as e:
         await message.answer(
-            f"❌ Не удалось опубликовать: {escape(str(e))}\n\nПроверьте, что бот добавлен в канал администратором."
+            f"❌ Не вдалося опублікувати: {escape(str(e))}\n\nПеревірте, що бота додано в канал адміністратором."
         )
         return
-    await message.answer("✅ Опубликовано в канале")
+    await message.answer("✅ Опубліковано в каналі")
 
 
 @router.callback_query(AdminOrderCb.filter(), IsAdmin())
@@ -52,7 +52,7 @@ async def process_order(callback: CallbackQuery, callback_data: AdminOrderCb, db
     order_id = callback_data.order_id
 
     if not await db.set_order_status(order_id, status):
-        await callback.answer("Заявка уже обработана", show_alert=True)
+        await callback.answer("Заявку вже оброблено", show_alert=True)
         return
 
     if isinstance(callback.message, Message):
@@ -64,9 +64,9 @@ async def process_order(callback: CallbackQuery, callback_data: AdminOrderCb, db
 
     order = await db.get_order(order_id)
     text = (
-        f"✅ Ваша заявка №{order_id} принята! Водитель свяжется с вами в ближайшее время."
+        f"✅ Вашу заявку №{order_id} прийнято! Водій зв'яжеться з вами найближчим часом."
         if accepted
-        else f"😔 К сожалению, заявка №{order_id} отклонена. Свяжитесь с нами или оформите новую."
+        else f"😔 На жаль, заявку №{order_id} відхилено. Зв'яжіться з нами або оформіть нову."
     )
     try:
         await bot.send_message(order["user_id"], text)
@@ -76,4 +76,4 @@ async def process_order(callback: CallbackQuery, callback_data: AdminOrderCb, db
 
 @router.callback_query(AdminOrderCb.filter())
 async def process_order_forbidden(callback: CallbackQuery) -> None:
-    await callback.answer("Только для администраторов", show_alert=True)
+    await callback.answer("Лише для адміністраторів", show_alert=True)

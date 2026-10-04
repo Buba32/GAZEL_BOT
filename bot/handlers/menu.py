@@ -26,19 +26,19 @@ router.message.middleware(RegistrationMiddleware())
 router.callback_query.middleware(RegistrationMiddleware())
 
 ADDRESSES_HINT = (
-    "📍 <b>Ваши адреса</b>\n\nОни подставляются при оформлении заказа. Нажмите на адрес, чтобы удалить его."
+    "📍 <b>Ваші адреси</b>\n\nВони підставляються під час оформлення замовлення. Натисніть на адресу, щоб видалити її."
 )
-NO_ADDRESSES = "Сохранённых адресов пока нет — они появятся после первого заказа."
+NO_ADDRESSES = "Збережених адрес поки немає — вони з'являться після першого замовлення."
 
 
 @router.message(F.text == MENU_NEWS)
 async def news(message: Message, config: Config) -> None:
     if config.channel_url:
         await message.answer(
-            "📰 Новости, акции и полезное — в нашем канале:", reply_markup=channel_kb(config.channel_url)
+            "📰 Новини, акції та корисне — у нашому каналі:", reply_markup=channel_kb(config.channel_url)
         )
     else:
-        await message.answer("📰 Канал с новостями скоро появится.")
+        await message.answer("📰 Канал із новинами скоро з'явиться.")
 
 
 @router.message(F.text == MENU_TARIFFS)
@@ -50,10 +50,10 @@ async def tariffs(message: Message, config: Config) -> None:
 async def my_orders(message: Message, db: Database) -> None:
     rows = await db.user_orders(message.from_user.id)
     if not rows:
-        await message.answer("У вас пока нет заказов. Нажмите «🚚 Заказать перевозку».")
+        await message.answer("У вас поки немає замовлень. Натисніть «🚚 Замовити перевезення».")
         return
 
-    lines = ["📋 <b>Ваши заказы</b>"]
+    lines = ["📋 <b>Ваші замовлення</b>"]
     for r in rows:
         date = datetime.fromisoformat(r["created_at"]).strftime("%d.%m.%Y")
         lines.append(
@@ -81,4 +81,4 @@ async def delete_address(callback: CallbackQuery, callback_data: AddressDeleteCb
         await callback.message.edit_reply_markup(reply_markup=manage_addresses_kb(rows))
     else:
         await callback.message.edit_text(NO_ADDRESSES)
-    await callback.answer("Адрес удалён")
+    await callback.answer("Адресу видалено")

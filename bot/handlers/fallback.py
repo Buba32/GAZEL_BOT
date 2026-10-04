@@ -17,9 +17,9 @@ async def unknown_message(message: Message, db: Database) -> None:
     if await db.get_user(message.from_user.id) is None:
         await message.answer(ASK_PHONE, reply_markup=contact_kb())
     else:
-        await message.answer("Не понял 🤔 Выберите действие в меню 👇", reply_markup=main_menu_kb())
+        await message.answer("🤔 Не розумію. Оберіть дію в меню 👇", reply_markup=main_menu_kb())
 
 
 @router.callback_query()
 async def stale_button(callback: CallbackQuery) -> None:
-    await callback.answer("Эта кнопка уже неактуальна")
+    await callback.answer("Ця кнопка вже неактуальна")

@@ -8,7 +8,7 @@ from bot.db import Database
 from bot.keyboards import contact_kb
 
 ASK_PHONE = (
-    "Чтобы пользоваться ботом, поделитесь номером телефона — по нему с вами свяжется водитель. Нажмите кнопку ниже 👇"
+    "Щоб користуватися ботом, поділіться номером телефону — за ним із вами зв'яжеться водій. Натисніть кнопку нижче 👇"
 )
 
 
@@ -26,7 +26,7 @@ class RegistrationMiddleware(BaseMiddleware):
         user = await db.get_user(tg_user.id) if tg_user else None
         if user is None:
             if isinstance(event, CallbackQuery):
-                await event.answer("Сначала зарегистрируйтесь: /start", show_alert=True)
+                await event.answer("Спочатку зареєструйтеся: /start", show_alert=True)
             elif isinstance(event, Message):
                 await event.answer(ASK_PHONE, reply_markup=contact_kb())
             return None

@@ -9,15 +9,15 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-MENU_ORDER = "🚚 Заказать перевозку"
-MENU_ADDRESSES = "📍 Мои адреса"
-MENU_ORDERS = "📋 Мои заказы"
-MENU_NEWS = "📰 Новости"
-MENU_TARIFFS = "💰 Тарифы"
+MENU_ORDER = "🚚 Замовити перевезення"
+MENU_ADDRESSES = "📍 Мої адреси"
+MENU_ORDERS = "📋 Мої замовлення"
+MENU_NEWS = "📰 Новини"
+MENU_TARIFFS = "💰 Тарифи"
 
-BTN_CONTACT = "📱 Поделиться номером"
-BTN_LOCATION = "📍 Отправить геолокацию"
-BTN_CANCEL = "❌ Отмена"
+BTN_CONTACT = "📱 Поділитися номером"
+BTN_LOCATION = "📍 Надіслати геолокацію"
+BTN_CANCEL = "❌ Скасувати"
 
 
 class AddressCb(CallbackData, prefix="addr"):
@@ -67,7 +67,7 @@ def address_input_kb() -> ReplyKeyboardMarkup:
             [KeyboardButton(text=BTN_CANCEL)],
         ],
         resize_keyboard=True,
-        input_field_placeholder="Улица, дом",
+        input_field_placeholder="Вулиця, будинок",
     )
 
 
@@ -89,19 +89,19 @@ def manage_addresses_kb(rows: Iterable) -> InlineKeyboardMarkup:
 
 def confirm_order_kb() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text="✅ Оформить заказ", callback_data=OrderCb(action="confirm"))
+    builder.button(text="✅ Оформити замовлення", callback_data=OrderCb(action="confirm"))
     builder.button(text="🔄 Заново", callback_data=OrderCb(action="restart"))
-    builder.button(text="❌ Отмена", callback_data=OrderCb(action="cancel"))
+    builder.button(text="❌ Скасувати", callback_data=OrderCb(action="cancel"))
     builder.adjust(1, 2)
     return builder.as_markup()
 
 
 def admin_order_kb(order_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text="✅ Принять", callback_data=AdminOrderCb(action="accept", order_id=order_id))
-    builder.button(text="❌ Отклонить", callback_data=AdminOrderCb(action="reject", order_id=order_id))
+    builder.button(text="✅ Прийняти", callback_data=AdminOrderCb(action="accept", order_id=order_id))
+    builder.button(text="❌ Відхилити", callback_data=AdminOrderCb(action="reject", order_id=order_id))
     return builder.as_markup()
 
 
 def channel_kb(url: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Открыть канал", url=url)]])
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Відкрити канал", url=url)]])

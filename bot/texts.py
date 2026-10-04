@@ -7,9 +7,9 @@ from bot.services.geo import Place, Route
 from bot.services.pricing import Tariff
 
 STATUS_LABELS = {
-    ORDER_NEW: "🕐 Новая",
-    ORDER_ACCEPTED: "✅ Принята",
-    ORDER_REJECTED: "❌ Отклонена",
+    ORDER_NEW: "🕐 Нова",
+    ORDER_ACCEPTED: "✅ Прийнята",
+    ORDER_REJECTED: "❌ Відхилена",
 }
 
 
@@ -24,8 +24,8 @@ def fmt_km(km: float) -> str:
 def fmt_duration(minutes: int) -> str:
     hours, mins = divmod(minutes, 60)
     if not hours:
-        return f"{mins} мин"
-    return f"{hours} ч {mins} мин" if mins else f"{hours} ч"
+        return f"{mins} хв"
+    return f"{hours} год {mins} хв" if mins else f"{hours} год"
 
 
 def map_url(src: Place, dst: Place) -> str:
@@ -36,28 +36,28 @@ def map_url(src: Place, dst: Place) -> str:
 
 def tariff_text(tariff: Tariff) -> str:
     return (
-        "💰 <b>Тарифы</b>\n\n"
-        f"Подача машины: {fmt_price(tariff.base_price)}\n"
-        f"Километр пути: {fmt_price(tariff.price_per_km)}\n"
-        f"Минимальный заказ: {fmt_price(tariff.min_price)}"
+        "💰 <b>Тарифи</b>\n\n"
+        f"Подача машини: {fmt_price(tariff.base_price)}\n"
+        f"Кілометр шляху: {fmt_price(tariff.price_per_km)}\n"
+        f"Мінімальне замовлення: {fmt_price(tariff.min_price)}"
     )
 
 
 def order_summary(src: Place, dst: Place, route: Route, price: int, tariff: Tariff) -> str:
     if route.estimated:
-        distance = f"~{fmt_km(route.distance_km)} (приблизительно)"
+        distance = f"~{fmt_km(route.distance_km)} (приблизно)"
     elif route.duration_min:
-        distance = f"{fmt_km(route.distance_km)} (≈ {fmt_duration(route.duration_min)} в пути)"
+        distance = f"{fmt_km(route.distance_km)} (≈ {fmt_duration(route.duration_min)} у дорозі)"
     else:
         distance = fmt_km(route.distance_km)
 
     return (
-        "🚚 <b>Расчёт перевозки</b>\n\n"
-        f"📍 Откуда: {escape(src.address)}\n"
-        f"🏁 Куда: {escape(dst.address)}\n"
-        f"🛣 Расстояние: {distance}\n"
-        f"💰 Стоимость: <b>{fmt_price(price)}</b>\n\n"
+        "🚚 <b>Розрахунок перевезення</b>\n\n"
+        f"📍 Звідки: {escape(src.address)}\n"
+        f"🏁 Куди: {escape(dst.address)}\n"
+        f"🛣 Відстань: {distance}\n"
+        f"💰 Вартість: <b>{fmt_price(price)}</b>\n\n"
         f"<i>Подача {fmt_price(tariff.base_price)} + {fmt_price(tariff.price_per_km)}/км, "
-        f"минимум {fmt_price(tariff.min_price)}</i>\n"
-        f'<a href="{map_url(src, dst)}">Маршрут на карте</a>'
+        f"мінімум {fmt_price(tariff.min_price)}</i>\n"
+        f'<a href="{map_url(src, dst)}">Маршрут на карті</a>'
     )
