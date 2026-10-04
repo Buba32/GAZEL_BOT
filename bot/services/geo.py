@@ -15,8 +15,6 @@ from dataclasses import dataclass
 
 import aiohttp
 
-from bot.services.ru_uk import ukrainize
-
 log = logging.getLogger(__name__)
 
 EARTH_RADIUS_KM = 6371.0
@@ -94,24 +92,18 @@ class GeoService:
         self._last_call = 0.0
 
     async def geocode(self, query: str) -> Place | None:
-        """Ищет адрес. None — не найден, GeoError — сервис недоступен.
-
-        Сначала ищем как написано (русские названия улиц находятся, если они есть в OSM),
-        затем — переделанный на украинский лад запрос.
-        """
-        params = {"format": "jsonv2", "limit": 1, "addressdetails": 1, "accept-language": self._language}
+        """Ищет адрес. None — не найден, GeoError — сервис недоступен."""
+        params = {"q": query, "format": "jsonv2", "limit": 1, "addressdetails": 1, "accept-language": self._language}
         if self._countries:
             params["countrycodes"] = self._countries
         if self._viewbox:
             params["viewbox"] = self._viewbox
             params["bounded"] = 1
-
-        for q in dict.fromkeys([query, ukrainize(query)]):
-            items = await self._nominatim("search", {**params, "q": q})
-            if items:
-                item = items[0]
-                return Place(short_address(item), float(item["lat"]), float(item["lon"]))
-        return None
+        items = await self._nominatim("search", params)
+        if not items:
+            return None
+        item = items[0]
+        return Place(short_address(item), float(item["lat"]), float(item["lon"]))
 
     async def reverse(self, lat: float, lon: float) -> Place:
         """Адрес по точке на карте. Координаты точные, так что при ошибке просто показываем их."""
