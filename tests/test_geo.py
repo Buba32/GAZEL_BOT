@@ -3,30 +3,30 @@ import pytest
 from bot.services.geo import GeoError, Place, haversine_km, short_address
 from tests.conftest import StubGeo
 
-MOSCOW = Place("Москва", 55.7558, 37.6173)
-SPB = Place("Санкт-Петербург", 59.9386, 30.3141)
+KHARKIV = Place("Харків", 49.9935, 36.2304)
+KYIV = Place("Київ", 50.4501, 30.5234)
 
 
-def test_haversine_moscow_spb():
-    assert haversine_km(MOSCOW, SPB) == pytest.approx(634, abs=3)
+def test_haversine_kharkiv_kyiv():
+    assert haversine_km(KHARKIV, KYIV) == pytest.approx(410, abs=5)
 
 
 def test_short_address_house():
     item = {
         "name": "",
-        "display_name": "12, Тверская улица, Тверской район, Москва, Россия",
-        "address": {"house_number": "12", "road": "Тверская улица", "city": "Москва"},
+        "display_name": "10, Сумська вулиця, Шевченківський район, Харків, Україна",
+        "address": {"house_number": "10", "road": "Сумська вулиця", "city": "Харків"},
     }
-    assert short_address(item) == "Москва, Тверская улица, 12"
+    assert short_address(item) == "Харків, Сумська вулиця, 10"
 
 
 def test_short_address_named_place():
     item = {
-        "name": "Шереметьево",
-        "display_name": "Шереметьево, Химки, Московская область, Россия",
-        "address": {"aeroway": "Шереметьево", "city": "Химки"},
+        "name": "Міжнародний аеропорт «Харків»",
+        "display_name": "Міжнародний аеропорт «Харків», Харків, Харківська область, Україна",
+        "address": {"aeroway": "Міжнародний аеропорт «Харків»", "city": "Харків"},
     }
-    assert short_address(item) == "Химки, Шереметьево"
+    assert short_address(item) == "Харків, Міжнародний аеропорт «Харків»"
 
 
 def test_short_address_falls_back_to_display_name():
@@ -38,14 +38,17 @@ async def test_geocode_found():
     geo = StubGeo(
         {
             "http://nominatim/search": [
-                {"lat": "55.7", "lon": "37.6", "name": "", "address": {"road": "Тверская улица", "city": "Москва"}}
+                {"lat": "50.0", "lon": "36.2", "name": "", "address": {"road": "Сумська вулиця", "city": "Харків"}}
             ]
         }
     )
-    place = await geo.geocode("Тверская")
-    assert place == Place("Москва, Тверская улица", 55.7, 37.6)
+    place = await geo.geocode("Сумская")
+    assert place == Place("Харків, Сумська вулиця", 50.0, 36.2)
     _, params = geo.calls[0]
-    assert params["countrycodes"] == "ru"
+    # Поиск только по Украине и внутри Харьковской области
+    assert params["countrycodes"] == "ua"
+    assert params["viewbox"] == "34.8,50.5,38.2,48.5"
+    assert params["bounded"] == 1
 
 
 async def test_geocode_not_found():
@@ -56,28 +59,28 @@ async def test_geocode_not_found():
 async def test_geocode_service_down_raises():
     geo = StubGeo({"http://nominatim/search": GeoError("HTTP 503")})
     with pytest.raises(GeoError):
-        await geo.geocode("Тверская")
+        await geo.geocode("Сумская")
 
 
 async def test_reverse_falls_back_to_coordinates():
     geo = StubGeo({"http://nominatim/reverse": GeoError("timeout")})
-    place = await geo.reverse(55.123456, 37.654321)
-    assert place == Place("55.12346, 37.65432", 55.123456, 37.654321)
+    place = await geo.reverse(50.123456, 36.654321)
+    assert place == Place("50.12346, 36.65432", 50.123456, 36.654321)
 
 
 async def test_route_by_roads():
-    geo = StubGeo({"http://osrm/route": {"code": "Ok", "routes": [{"distance": 712_300, "duration": 30_600}]}})
-    route = await geo.route(MOSCOW, SPB)
-    assert route.distance_km == pytest.approx(712.3)
-    assert route.duration_min == 510
+    geo = StubGeo({"http://osrm/route": {"code": "Ok", "routes": [{"distance": 480_300, "duration": 21_600}]}})
+    route = await geo.route(KHARKIV, KYIV)
+    assert route.distance_km == pytest.approx(480.3)
+    assert route.duration_min == 360
     assert not route.estimated
     url, _ = geo.calls[0]
-    assert url == "http://osrm/route/v1/driving/37.6173,55.7558;30.3141,59.9386"
+    assert url == "http://osrm/route/v1/driving/36.2304,49.9935;30.5234,50.4501"
 
 
 async def test_route_falls_back_to_estimate():
     geo = StubGeo({"http://osrm/route": GeoError("HTTP 502")}, road_factor=1.5)
-    route = await geo.route(MOSCOW, SPB)
+    route = await geo.route(KHARKIV, KYIV)
     assert route.estimated
     assert route.duration_min is None
-    assert route.distance_km == pytest.approx(haversine_km(MOSCOW, SPB) * 1.5)
+    assert route.distance_km == pytest.approx(haversine_km(KHARKIV, KYIV) * 1.5)

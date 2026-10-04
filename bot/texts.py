@@ -13,8 +13,8 @@ STATUS_LABELS = {
 }
 
 
-def fmt_price(rub: int | float) -> str:
-    return f"{round(rub):,}".replace(",", " ") + " ₽"
+def fmt_price(uah: int | float) -> str:
+    return f"{round(uah):,}".replace(",", " ") + " грн"
 
 
 def fmt_km(km: float) -> str:
@@ -29,7 +29,9 @@ def fmt_duration(minutes: int) -> str:
 
 
 def map_url(src: Place, dst: Place) -> str:
-    return f"https://yandex.ru/maps/?rtext={src.lat},{src.lon}~{dst.lat},{dst.lon}&rtt=auto"
+    # Формат без «&» в query: ссылка переживает пересборку сообщения через Message.html_text,
+    # которая не экранирует атрибуты, а голый «&» ломает HTML-разметку Telegram
+    return f"https://www.google.com/maps/dir/{src.lat},{src.lon}/{dst.lat},{dst.lon}/"
 
 
 def tariff_text(tariff: Tariff) -> str:

@@ -1,16 +1,16 @@
 from bot.db import ORDER_ACCEPTED, ORDER_REJECTED
 from bot.services.geo import Place
 
-A = Place("Москва, Тверская улица, 12", 55.76, 37.61)
-B = Place("Химки, Ленинградское шоссе, 1", 55.89, 37.44)
+A = Place("Харків, Сумська вулиця, 10", 50.0005, 36.2325)
+B = Place("Чугуїв, Харківська вулиця, 5", 49.8350, 36.6880)
 
 
 async def test_user_upsert(db):
     assert await db.get_user(10) is None
-    await db.upsert_user(10, "+79990000000", "Иван", None)
-    await db.upsert_user(10, "+79991111111", "Иван", "ivan")
+    await db.upsert_user(10, "+380500000000", "Иван", None)
+    await db.upsert_user(10, "+380501111111", "Иван", "ivan")
     user = await db.get_user(10)
-    assert user["phone"] == "+79991111111"
+    assert user["phone"] == "+380501111111"
     assert user["username"] == "ivan"
 
 

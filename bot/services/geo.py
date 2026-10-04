@@ -1,7 +1,9 @@
 """Геокодинг (адрес → координаты) и расчёт расстояния по дорогам.
 
 Сейчас используются бесплатные сервисы OpenStreetMap:
-  * Nominatim — поиск адресов (лимит 1 запрос/сек, обязателен User-Agent);
+  * Nominatim — поиск адресов (лимит 1 запрос/сек, обязателен User-Agent).
+    Поиск ограничен страной и прямоугольником области (по умолчанию — Харьковская),
+    поэтому «Сумская 10» находится в Харькове, а не в другом городе;
   * OSRM — маршрут по дорогам.
 Если OSRM недоступен, расстояние оценивается по прямой с коэффициентом.
 """
@@ -73,6 +75,8 @@ class GeoService:
         nominatim_url: str,
         osrm_url: str,
         countries: str = "",
+        viewbox: str = "",
+        language: str = "uk",
         road_factor: float = 1.3,
         min_interval: float = 1.0,
     ) -> None:
@@ -80,6 +84,8 @@ class GeoService:
         self._nominatim_url = nominatim_url.rstrip("/")
         self._osrm_url = osrm_url.rstrip("/")
         self._countries = countries
+        self._viewbox = viewbox
+        self._language = language
         self._road_factor = road_factor
         self._min_interval = min_interval
         self._lock = asyncio.Lock()
@@ -87,9 +93,12 @@ class GeoService:
 
     async def geocode(self, query: str) -> Place | None:
         """Ищет адрес. None — не найден, GeoError — сервис недоступен."""
-        params = {"q": query, "format": "jsonv2", "limit": 1, "addressdetails": 1, "accept-language": "ru"}
+        params = {"q": query, "format": "jsonv2", "limit": 1, "addressdetails": 1, "accept-language": self._language}
         if self._countries:
             params["countrycodes"] = self._countries
+        if self._viewbox:
+            params["viewbox"] = self._viewbox
+            params["bounded"] = 1
         items = await self._nominatim("search", params)
         if not items:
             return None
@@ -98,7 +107,7 @@ class GeoService:
 
     async def reverse(self, lat: float, lon: float) -> Place:
         """Адрес по точке на карте. Координаты точные, так что при ошибке просто показываем их."""
-        params = {"lat": lat, "lon": lon, "format": "jsonv2", "addressdetails": 1, "accept-language": "ru"}
+        params = {"lat": lat, "lon": lon, "format": "jsonv2", "addressdetails": 1, "accept-language": self._language}
         try:
             item = await self._nominatim("reverse", params)
         except GeoError:

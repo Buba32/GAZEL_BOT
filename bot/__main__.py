@@ -29,6 +29,8 @@ async def main() -> None:
         nominatim_url=config.nominatim_url,
         osrm_url=config.osrm_url,
         countries=config.geocoder_countries,
+        viewbox=config.geocoder_viewbox,
+        language=config.geocoder_language,
         road_factor=config.road_factor,
     )
 

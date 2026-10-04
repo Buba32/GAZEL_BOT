@@ -67,7 +67,7 @@ def address_input_kb() -> ReplyKeyboardMarkup:
             [KeyboardButton(text=BTN_CANCEL)],
         ],
         resize_keyboard=True,
-        input_field_placeholder="Город, улица, дом",
+        input_field_placeholder="Улица, дом",
     )
 
 

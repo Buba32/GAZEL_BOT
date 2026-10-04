@@ -4,10 +4,10 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Tariff:
-    base_price: int  # подача машины, ₽
-    price_per_km: float  # ₽ за километр пути
-    min_price: int  # минимальный заказ, ₽
-    round_to: int = 10  # округляем вверх до N ₽
+    base_price: int  # подача машины, грн
+    price_per_km: float  # грн за километр пути
+    min_price: int  # минимальный заказ, грн
+    round_to: int = 10  # округляем вверх до N грн
 
 
 def calc_price(distance_km: float, tariff: Tariff) -> int:
